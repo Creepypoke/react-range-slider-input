@@ -1,5 +1,6 @@
 body {
   background-color: #000;
+  color: #fff;
 }
 .container {
   text-align: center;
@@ -19,6 +20,10 @@ body {
 }
 .container button:hover {
   background-color: #444;
+}
+.header {
+  font-family: monospace;
+  font-weight: bold;
 }
 .range-slider {
   margin: 60px auto 0;

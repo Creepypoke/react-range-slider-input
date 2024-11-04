@@ -150,10 +150,10 @@ export default function () {
     <td>Array of two Booleans which specify if the lower and upper thumbs are disabled or not, respectively. If only one Boolean value is passed instead of an array, the value will apply to both thumbs.</td>
 </tr>
 <tr>
-    <td><code>orientation</code></td>
-    <td>string</td>
-    <td>horizontal</td>
-    <td>String that specifies the axis along which the user interaction is to be registered. By default, the range slider element registers the user interaction along the X-axis. It takes two different values: <code>horizontal</code> and <code>vertical</code>.</td>
+    <td><code>reversed</code></td>
+    <td>boolean</td>
+    <td>false</td>
+    <td>Boolean that specifies is reversed orientation of slider or not.</td>
 </tr>
 </table>
 

@@ -184,6 +184,10 @@ class RangeSlider extends PureComponent {
     return this.options.orientation === VERTICAL ? vertical : horizontal
   }
 
+  ifReverseElse (reverse, normal) {
+    return this.options.reversed ? reverse : normal
+  }
+
   currentIndex (i) {
     return i === 1 ? this.index.max : this.index.min
   }
@@ -285,7 +289,9 @@ class RangeSlider extends PureComponent {
   // -> window is resized
   updateThumbs () {
     this.iterateMinMaxProps(_ => {
-      this.thumb[this.index[_]].current.style[this.ifVerticalElse('top', 'left')] = `calc(${((this.value[_] - this.options.min) / this.maxRangeWidth) * 100}% + ${(0.5 - ((this.value[_] - this.options.min) / this.maxRangeWidth)) * this.ifVerticalElse(this.thumbHeight, this.thumbWidth)[_]}px)`
+      const thumbSize = this.ifVerticalElse(this.thumbHeight, this.thumbWidth)[_]
+      const thumbOffset = (this.ifReverseElse(-0.5, 0.5) - ((this.value[_] - this.options.min) / this.maxRangeWidth)) * thumbSize
+      this.thumb[this.index[_]].current.style[this.ifVerticalElse('inset-block-start', 'inset-inline-start')] = `calc(${((this.value[_] - this.options.min) / this.maxRangeWidth) * 100}% + ${thumbOffset}px)`
     })
   }
 
@@ -296,7 +302,7 @@ class RangeSlider extends PureComponent {
     const elementBounds = this.element.current.getBoundingClientRect()
     const deltaOffset = ((0.5 - ((this.value.min - this.options.min) / this.maxRangeWidth)) * this.ifVerticalElse(this.thumbHeight, this.thumbWidth).min) / this.ifVerticalElse(elementBounds.bottom - elementBounds.top, elementBounds.right - elementBounds.left)
     const deltaDimension = ((0.5 - ((this.value.max - this.options.min) / this.maxRangeWidth)) * this.ifVerticalElse(this.thumbHeight, this.thumbWidth).max) / this.ifVerticalElse(elementBounds.bottom - elementBounds.top, elementBounds.right - elementBounds.left)
-    this.range.current.style[this.ifVerticalElse('top', 'left')] = `${(((this.value.min - this.options.min) / this.maxRangeWidth) + deltaOffset) * 100}%`
+    this.range.current.style[this.ifVerticalElse('inset-block-start', 'inset-inline-start')] = `${(((this.value.min - this.options.min) / this.maxRangeWidth) + deltaOffset) * 100}%`
     this.range.current.style[this.ifVerticalElse('height', 'width')] = `${(((this.value.max - this.options.min) / this.maxRangeWidth) - ((this.value.min - this.options.min) / this.maxRangeWidth) - deltaOffset + deltaDimension) * 100}%`
   }
 
@@ -366,10 +372,10 @@ class RangeSlider extends PureComponent {
   // -> orientation property is modified
   updateOrientation () {
     if (this.options.orientation === VERTICAL) { this.setNodeAttribute(this.element.current, DATA_VERTICAL) } else { this.removeNodeAttribute(this.element.current, DATA_VERTICAL) }
-    this.range.current.style[this.ifVerticalElse('left', 'top')] = ''
+    this.range.current.style[this.ifVerticalElse('inset-inline-start', 'inset-block-start')] = ''
     this.range.current.style[this.ifVerticalElse('width', 'height')] = ''
-    this.thumb[0].current.style[this.ifVerticalElse('left', 'top')] = ''
-    this.thumb[1].current.style[this.ifVerticalElse('left', 'top')] = ''
+    this.thumb[0].current.style[this.ifVerticalElse('inset-inline-start', 'inset-block-start')] = ''
+    this.thumb[1].current.style[this.ifVerticalElse('inset-inline-start', 'inset-block-start')] = ''
   }
 
   // thumb width & height values are to be synced with the CSS values for correct calculation of
@@ -389,7 +395,9 @@ class RangeSlider extends PureComponent {
   currentPosition (e, node) {
     const elementBounds = this.element.current.getBoundingClientRect()
     const nodeBounds = node.getBoundingClientRect()
-    const currPos = ((this.ifVerticalElse(nodeBounds.top - elementBounds.top, nodeBounds.left - elementBounds.left) + (e[`client${this.ifVerticalElse('Y', 'X')}`] - node.getBoundingClientRect()[this.ifVerticalElse('top', 'left')]) - (this.thumbDrag ? ((0.5 - (this.value[this.thumbDrag] - this.options.min) / this.maxRangeWidth) * this.ifVerticalElse(this.thumbHeight, this.thumbWidth)[this.thumbDrag]) : 0)) / this.ifVerticalElse(elementBounds.bottom - elementBounds.top, elementBounds.right - elementBounds.left)) * this.maxRangeWidth + this.options.min
+    const mainDirection = this.ifVerticalElse(this.ifReverseElse('bottom', 'top'), this.ifReverseElse('right', 'left'))
+    const oppositeDirection = this.ifVerticalElse(this.ifReverseElse('top', 'bottom'), this.ifReverseElse('left', 'right'))
+    const currPos = ((this.ifVerticalElse(nodeBounds[mainDirection] - elementBounds[mainDirection], nodeBounds[mainDirection] - elementBounds[mainDirection]) + (e[`client${this.ifVerticalElse('Y', 'X')}`] - node.getBoundingClientRect()[mainDirection]) - (this.thumbDrag ? ((0.5 - (this.value[this.thumbDrag] - this.options.min) / this.maxRangeWidth) * this.ifVerticalElse(this.thumbHeight, this.thumbWidth)[this.thumbDrag]) : 0)) / this.ifVerticalElse(elementBounds[oppositeDirection] - elementBounds[mainDirection], elementBounds[oppositeDirection] - elementBounds[mainDirection])) * this.maxRangeWidth + this.options.min
     if (currPos < this.options.min) { return this.options.min }
     if (currPos > this.options.max) { return this.options.max }
     return currPos
@@ -541,6 +549,7 @@ class RangeSlider extends PureComponent {
     this.fallbackToDefault('step', 1)
     this.fallbackToDefault('min', 0)
     this.fallbackToDefault('max', 100)
+    this.fallbackToDefault('reversed', false)
     if (this.props.value) { this.fallbackToDefault('value', [25, 75]) }
 
     this.safeMinMaxValues()
@@ -556,6 +565,6 @@ class RangeSlider extends PureComponent {
       </div>
     )
   }
-};
+}
 
 export default RangeSlider
